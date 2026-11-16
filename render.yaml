@@ -1,0 +1,14 @@
+# Render blueprint: one free web service serves the frontend AND the WebSocket API.
+services:
+  - type: web
+    name: chromarush
+    runtime: node
+    plan: free
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    healthCheckPath: /healthz
+    envVars:
+      - key: DATABASE_URL # optional: Postgres (e.g. Supabase/Neon) for persistence across restarts
+        sync: false
+      - key: DISCONNECT_GRACE_SECONDS
+        value: '6'
