@@ -23,6 +23,35 @@ test.describe('landing page', () => {
   });
 });
 
+test.describe('landing navigation', () => {
+  test('hamburger menu shows only on phones; desktop and tablet show the full nav', async ({
+    browser,
+  }) => {
+    for (const [width, height, hamburger] of [
+      [1280, 800, false],
+      [820, 1100, false],
+      [390, 844, true],
+    ] as const) {
+      const { context, page } = await newPlayer(browser, { width, height });
+      await page.goto('/');
+      const menu = page.getByRole('navigation', { name: 'Main' }).getByRole('button', {
+        name: 'Menu',
+      });
+      if (hamburger) {
+        await expect(menu).toBeVisible();
+        await menu.click();
+        await expect(page.getByRole('button', { name: 'How to play' }).first()).toBeVisible();
+      } else {
+        await expect(menu).toBeHidden();
+        await expect(
+          page.getByRole('navigation', { name: 'Main' }).getByRole('button', { name: 'Play now' }),
+        ).toBeVisible();
+      }
+      await closeAll(context);
+    }
+  });
+});
+
 test.describe('friends multiplayer', () => {
   test('create room, join by code, rules sync, start, refresh-resume, full game, restart', async ({
     browser,
@@ -193,6 +222,9 @@ test.describe('disconnect handling', () => {
     // Whoever's turn it is "closes the browser". The starting colour pick, if any, counts as a turn.
     const mine = (p: Page) =>
       p.getByRole('status').filter({ hasText: /Your turn!|Choose a colour/ });
+    await expect
+      .poll(async () => (await mine(a.page).count()) + (await mine(b.page).count()))
+      .toBe(1);
     const aTurn = await mine(a.page).count();
     const absent = aTurn ? a : b;
     const present = aTurn ? b : a;

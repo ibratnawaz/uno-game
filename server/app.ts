@@ -50,7 +50,7 @@ export async function startApp(opts: AppOptions): Promise<RunningApp> {
     }
     if (!staticDir || !existsSync(staticDir)) {
       res.writeHead(404, { 'Content-Type': 'text/plain' });
-      return void res.end('ChromaRush API server. Build the frontend with `npm run build`.');
+      return void res.end('Card Rush API server. Build the frontend with `npm run build`.');
     }
     let file = path.join(staticDir, path.normalize(decodeURIComponent(url.pathname)));
     if (!file.startsWith(staticDir)) {

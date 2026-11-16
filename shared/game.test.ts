@@ -287,6 +287,9 @@ describe('Wild Draw Four legality and challenge', () => {
     expect(s.current).toBe(1);
     expect(s.pending).toBeNull();
     expect(totalCards(s)).toBe(before);
+    const text = s.log.map((l) => l.text).join('\n');
+    expect(text).toContain('P1 challenges the Wild Draw Four.');
+    expect(text).toContain('P0 was holding a red card, so they draw 4. P1 keeps the turn.');
   });
 
   it('failed challenge: challenger draws 6 and loses the turn', () => {
@@ -295,6 +298,9 @@ describe('Wild Draw Four legality and challenge', () => {
     expect(s.players[1].hand).toHaveLength(2 + 6);
     expect(s.players[0].hand).toHaveLength(2);
     expect(s.current).toBe(2);
+    expect(s.log.map((l) => l.text).join('\n')).toContain(
+      'P0 had no red card, so P1 draws 6 and loses the turn.',
+    );
   });
 
   it('accepting (drawing) takes 4 and loses the turn', () => {

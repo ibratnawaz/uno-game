@@ -57,7 +57,7 @@ export interface Pending {
   kind: 'draw2' | 'draw4';
   amount: number;
   /** Present only for the first (un-stacked) Wild Draw Four: it may be challenged. */
-  challenge: { offender: string; legal: boolean } | null;
+  challenge: { offender: string; legal: boolean; prevColor?: Color } | null;
 }
 
 export interface PlayerState {
@@ -84,7 +84,7 @@ export interface GameState {
   phase: Phase;
   pending: Pending | null;
   /** A wild card has been played and its colour is awaiting selection. */
-  wild: { wild4: boolean; legal: boolean; initial?: boolean } | null;
+  wild: { wild4: boolean; legal: boolean; initial?: boolean; prevColor?: Color } | null;
   /** Card drawn this turn that may still be played (or passed). */
   drawnCardId: number | null;
   /** Player who has one card and has not called UNO yet (catchable). */

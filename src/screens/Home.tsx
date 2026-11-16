@@ -27,7 +27,7 @@ export function Home() {
             </button>
           </div>
           <button
-            className="btn btn-ghost md:hidden"
+            className="btn btn-ghost md:!hidden"
             aria-expanded={menu}
             aria-label="Menu"
             onClick={() => setMenu(!menu)}
@@ -98,7 +98,7 @@ export function Home() {
         </section>
         <section id="rules" className="scroll-mt-20 py-6" aria-label="Disclaimer">
           <p className="text-center text-xs text-white/45">
-            ChromaRush is an unofficial, fan-made, UNO-inspired card game with original artwork. It
+            Card Rush is an unofficial, fan-made, UNO-inspired card game with original artwork. It
             is not affiliated with, endorsed by or connected to Mattel or the UNO® brand.
           </p>
         </section>

@@ -276,7 +276,11 @@ function placeCard(
     case 'wild4': {
       s.phase = 'chooseColor';
       // Legality is judged against the colour that was active BEFORE this card.
-      s.wild = { wild4: true, legal: s.pending ? true : wild4Legal(p.hand, prevColor, card.id) };
+      s.wild = {
+        wild4: true,
+        legal: s.pending ? true : wild4Legal(p.hand, prevColor, card.id),
+        prevColor,
+      };
       break;
     }
     case '7':
@@ -365,9 +369,13 @@ export function applyAction(
       if (w.wild4) {
         s.pending = s.pending
           ? { kind: 'draw4', amount: s.pending.amount + 4, challenge: null }
-          : { kind: 'draw4', amount: 4, challenge: { offender: s.players[i].id, legal: w.legal } };
+          : {
+              kind: 'draw4',
+              amount: 4,
+              challenge: { offender: s.players[i].id, legal: w.legal, prevColor: w.prevColor },
+            };
         advance(s, 1);
-        } else advance(s, 1);
+      } else advance(s, 1);
       return s;
     }
 
@@ -440,17 +448,22 @@ export function applyAction(
       const offenderIdx = idxOf(s, ch.offender);
       const me = s.players[i];
       const offender = s.players[offenderIdx];
+      const col = ch.prevColor ? colorName(ch.prevColor).toLowerCase() : 'matching';
+      log(s, `${me.name} challenges the Wild Draw Four.`);
       if (!ch.legal && offender) {
         const got = give(s, offender, s.pending.amount, rng);
         log(
           s,
-          `Challenge succeeded! ${offender.name} had a matching colour and draws ${got.length}.`,
+          `Challenge succeeded! ${offender.name} was holding a ${col} card, so they draw ${got.length}. ${me.name} keeps the turn.`,
         );
         s.pending = null; // challenger keeps the turn
       } else {
         const total = s.pending.amount + 2;
         const got = give(s, me, total, rng);
-        log(s, `Challenge failed. ${me.name} draws ${got.length} and loses the turn.`);
+        log(
+          s,
+          `Challenge failed. ${offender?.name ?? 'The player'} had no ${col} card, so ${me.name} draws ${got.length} and loses the turn.`,
+        );
         s.pending = null;
         advance(s, 1);
       }

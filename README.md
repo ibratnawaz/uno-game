@@ -1,4 +1,4 @@
-# ChromaRush – multiplayer card game (unofficial UNO-inspired)
+# Card Rush – multiplayer card game (unofficial UNO-inspired)
 
 Play 2–20 players with friends on any device through a private room code / invite link, or play against 1–19 bots. Original artwork and name; **not affiliated with Mattel or UNO®**.
 

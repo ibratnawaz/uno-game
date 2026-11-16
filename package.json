@@ -1,9 +1,9 @@
 {
-  "name": "chromarush",
+  "name": "card-rush",
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "description": "ChromaRush - an unofficial UNO-inspired multiplayer card game",
+  "description": "Card Rush - an unofficial UNO-inspired multiplayer card game",
   "scripts": {
     "dev": "concurrently -n server,web -c blue,green \"npm:dev:server\" \"npm:dev:web\"",
     "dev:web": "vite",

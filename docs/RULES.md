@@ -1,4 +1,4 @@
-# Game rules (ChromaRush – unofficial UNO-inspired)
+# Game rules (Card Rush – unofficial UNO-inspired)
 
 ## Standard rules (always on)
 

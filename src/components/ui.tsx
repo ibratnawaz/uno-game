@@ -64,7 +64,7 @@ export function Logo({ size = 1 }: { size?: number }) {
         />
       </svg>
       <span className="font-display text-[1.7em] leading-none font-black tracking-tight">
-        Chroma<span className="text-[#ffd34d]">Rush</span>
+        Card <span className="text-[#ffd34d]">Rush</span>
       </span>
     </div>
   );

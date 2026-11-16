@@ -36,7 +36,7 @@ export function Lobby() {
     if (navigator.share) {
       try {
         await navigator.share({
-          title: 'Join my ChromaRush game',
+          title: 'Join my Card Rush game',
           text: `Join my game! Room code ${view.code}`,
           url: link,
         });
@@ -227,7 +227,7 @@ export function RecoveryModal({
   return (
     <Modal title="Your recovery code" onClose={onClose}>
       <p className="mb-3 text-sm text-white/70">
-        This browser reconnects automatically. To continue on <b>another device</b>, open ChromaRush
+        This browser reconnects automatically. To continue on <b>another device</b>, open Card Rush
         → Play With Friends → Recover and enter the room code plus this code. Keep it private – it
         is your seat key.
       </p>
