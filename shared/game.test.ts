@@ -132,9 +132,30 @@ describe('turn progression', () => {
       ],
     });
     s = applyAction(s, 'p0', { type: 'play', cardId: s.players[0].hand[0].id });
+    // The turn visibly passes to the victim, who owes 2 cards.
+    expect(s.current).toBe(1);
+    expect(s.pending).toMatchObject({ kind: 'draw2', amount: 2 });
+    expect(s.players[1].hand).toHaveLength(2);
+    expect(err(() => applyAction(s, 'p0', { type: 'draw' }))).toBe('not_your_turn');
+    s = applyAction(s, 'p1', { type: 'draw' });
     expect(s.players[1].hand).toHaveLength(4);
     expect(s.current).toBe(2);
     expect(s.pending).toBeNull();
+  });
+
+  it('two players: +2 passes the turn to the opponent, who draws, then it returns', () => {
+    let s = scenario({
+      top: C('red', '5'),
+      hands: [
+        [C('red', 'draw2'), C('red', '2')],
+        [C('blue', '3'), C('blue', '4')],
+      ],
+    });
+    s = applyAction(s, 'p0', { type: 'play', cardId: s.players[0].hand[0].id });
+    expect(s.current).toBe(1);
+    s = applyAction(s, 'p1', { type: 'draw' });
+    expect(s.players[1].hand).toHaveLength(4);
+    expect(s.current).toBe(0);
   });
 });
 
@@ -419,9 +440,12 @@ describe('stacking house rules', () => {
       ],
     });
 
-  it('standard rules: penalty applies immediately, no stacking', () => {
+  it('standard rules: victim must draw, cannot stack', () => {
     let s = stackScenario({});
     s = applyAction(s, 'p0', { type: 'play', cardId: s.players[0].hand[0].id });
+    expect(s.current).toBe(1);
+    expect(canPlayCard(s, 'p1', s.players[1].hand[0])).toBe(false);
+    s = applyAction(s, 'p1', { type: 'draw' });
     expect(s.players[1].hand).toHaveLength(5);
     expect(s.current).toBe(2);
   });
@@ -436,7 +460,9 @@ describe('stacking house rules', () => {
       'must_answer_penalty',
     );
     s = applyAction(s, 'p1', { type: 'play', cardId: s.players[1].hand[0].id });
-    expect(s.pending).toBeNull(); // p2 cannot stack -> penalty auto applied
+    expect(s.current).toBe(2); // p2 now owes 4 and cannot stack
+    s = applyAction(s, 'p2', { type: 'draw' });
+    expect(s.pending).toBeNull();
     expect(s.players[2].hand).toHaveLength(2 + 4);
     expect(s.current).toBe(0);
   });
@@ -455,7 +481,9 @@ describe('stacking house rules', () => {
     s = applyAction(s, 'p0', { type: 'play', cardId: s.players[0].hand[0].id });
     s = applyAction(s, 'p1', { type: 'play', cardId: s.players[1].hand[1].id });
     s = applyAction(s, 'p1', { type: 'chooseColor', color: 'green' });
-    // p2 cannot stack further, so the accumulated 2 + 4 = 6 is applied immediately.
+    // p2 cannot stack further, so they draw the accumulated 2 + 4 = 6.
+    expect(s.current).toBe(2);
+    s = applyAction(s, 'p2', { type: 'draw' });
     expect(s.pending).toBeNull();
     expect(s.players[2].hand).toHaveLength(2 + 6);
   });
@@ -475,7 +503,7 @@ describe('stacking house rules', () => {
     expect(canPlayCard(s, 'p1', s.players[1].hand[0])).toBe(true);
     expect(canPlayCard(s, 'p1', s.players[1].hand[1])).toBe(false);
     s = applyAction(s, 'p1', { type: 'play', cardId: s.players[1].hand[0].id });
-    expect(s.pending).toBeNull(); // p0 cannot stack back -> auto applied: 4 + 2
+    s = applyAction(s, 'p0', { type: 'draw' }); // p0 cannot stack back: 4 + 2
     expect(s.players[0].hand).toHaveLength(1 + 6);
   });
 
@@ -496,7 +524,7 @@ describe('stacking house rules', () => {
     expect(s.pending?.challenge).not.toBeNull();
     s = applyAction(s, 'p1', { type: 'play', cardId: b.id });
     s = applyAction(s, 'p1', { type: 'chooseColor', color: 'blue' });
-    expect(s.pending).toBeNull(); // p2 had no +4 -> took 8
+    s = applyAction(s, 'p2', { type: 'draw' }); // p2 had no +4 -> takes 8
     expect(s.players[2].hand).toHaveLength(2 + 8);
   });
 

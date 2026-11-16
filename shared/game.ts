@@ -3,7 +3,7 @@
  * `applyAction` never mutates its input; it returns a new state or throws GameError.
  */
 import { buildDeck, cardName, cardPoints, colorName, decksFor, shuffle } from './deck';
-import { anyStacking, canStack, isPlayable, wild4Legal } from './rules';
+import { canStack, isPlayable, wild4Legal } from './rules';
 import {
   COLORS,
   GameError,
@@ -187,15 +187,6 @@ export function playableCards(s: GameState, playerId: string): Card[] {
 
 // ---------------------------------------------------------------- effects
 
-/** If the current player owes a penalty and cannot stack, apply it immediately. */
-function autoResolvePenalty(s: GameState, rng: Rng) {
-  const pen = s.pending;
-  if (!pen || pen.challenge || s.phase === 'over') return;
-  const p = currentPlayer(s);
-  if (anyStacking(s.rules) && p.hand.some((c) => canStack(s.rules, pen, c, s.activeColor))) return;
-  takePenalty(s, rng);
-}
-
 function takePenalty(s: GameState, rng: Rng) {
   const pen = s.pending as NonNullable<GameState['pending']>;
   const p = currentPlayer(s);
@@ -276,7 +267,6 @@ function placeCard(
       const base = s.pending ? s.pending.amount : 0;
       s.pending = { kind: 'draw2', amount: base + 2, challenge: null };
       advance(s, 1);
-      autoResolvePenalty(s, rng);
       break;
     }
     case 'wild':
@@ -377,8 +367,7 @@ export function applyAction(
           ? { kind: 'draw4', amount: s.pending.amount + 4, challenge: null }
           : { kind: 'draw4', amount: 4, challenge: { offender: s.players[i].id, legal: w.legal } };
         advance(s, 1);
-        autoResolvePenalty(s, rng);
-      } else advance(s, 1);
+        } else advance(s, 1);
       return s;
     }
 

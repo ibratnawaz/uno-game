@@ -62,13 +62,18 @@ export function Game() {
       return waiting.id === g.you
         ? 'Reconnecting…'
         : `${waiting.name} disconnected. Waiting for reconnection.`;
-    if (!myTurn) return `${current?.name ?? ''}'s turn`;
+    if (!myTurn)
+      return g.pending
+        ? `${current?.name ?? ''} must draw ${g.pending.amount}`
+        : `${current?.name ?? ''}'s turn`;
     if (g.phase === 'chooseColor') return 'Choose a colour';
     if (g.phase === 'chooseSwap') return 'Choose who to swap with';
     if (g.pending)
       return g.pending.challengeable
         ? `Wild Draw Four! Challenge it or draw ${g.pending.amount}`
-        : `Stack a draw card or draw ${g.pending.amount}`;
+        : g.playable.length > 0
+        ? `Stack a draw card or draw ${g.pending.amount}`
+        : `You must draw ${g.pending.amount}`;
     if (g.drawnCardId !== null) return 'Play the card you drew, or pass';
     return 'Your turn!';
   })();
