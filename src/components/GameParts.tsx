@@ -2,10 +2,51 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { COLORS, type Card, type Color } from '../../shared/types';
 import type { PublicMember } from '../../shared/room';
 import type { GameView, PublicPlayer } from '../../shared/view';
-import { CardFace } from './Card';
+import { FAN_STEP, fanLayout } from '../../shared/fan';
+import { CardBack, CardFace } from './Card';
 import { Avatar, COLOR_HEX, Modal } from './ui';
 
 // ------------------------------------------------------------------ opponents
+
+/** Fanned card backs + a big count: readable at a glance, bounded width for any hand size. */
+function MiniFan({ count, compact }: { count: number; compact: boolean }) {
+  const w = compact ? 18 : 24; // card width in px
+  const max = compact ? 5 : 7;
+  const { cards, overflow } = fanLayout(count, max);
+  const fanW = w + (max - 1) * FAN_STEP * w; // fixed width so tiles never resize as the count changes
+  const tone = count === 1 ? 'text-red-300' : count === 2 ? 'text-amber-300' : 'text-white';
+  return (
+    <span className="flex items-center gap-1.5">
+      <span
+        aria-hidden
+        className="relative mr-1 ml-2 block shrink-0"
+        style={{ width: fanW, height: w * 1.5 + 4 }}
+      >
+        {cards.map((c, i) => (
+          <span
+            key={i}
+            className="absolute top-0 block"
+            style={{
+              left: c.x * w,
+              zIndex: i,
+              transform: `rotate(${c.rot}deg)`,
+              transformOrigin: '50% 120%',
+            }}
+          >
+            <CardBack w={w} className="!shadow-md" />
+          </span>
+        ))}
+      </span>
+      <b
+        key={count}
+        className={`anim-pop text-2xl leading-none font-black tabular-nums drop-shadow ${tone}`}
+      >
+        {count}
+        {overflow > 0 && <span className="sr-only"> cards</span>}
+      </b>
+    </span>
+  );
+}
 
 export function OpponentStrip({
   players,
@@ -44,6 +85,7 @@ export function OpponentStrip({
             ref={(el) => {
               if (el) refs.current.set(p.id, el);
             }}
+            aria-label={`${p.name}: ${p.handCount} card${p.handCount === 1 ? '' : 's'}`}
             className={`relative flex shrink-0 items-center gap-2 rounded-2xl border bg-white/8 py-1.5 pr-3 pl-1.5 transition-all ${turn ? 'turn-ring border-[#ffd34d] bg-[#ffd34d]/15' : 'border-white/10'} ${offline ? 'opacity-70' : ''}`}
           >
             <span className="relative">
@@ -61,14 +103,12 @@ export function OpponentStrip({
                 </span>
               )}
             </span>
-            <span className="min-w-0 max-w-[92px]">
-              <span className="block truncate text-sm leading-tight font-bold">{p.name}</span>
+            <span className="shrink-0">
+              <span className="mb-0.5 block max-w-[110px] truncate text-sm leading-tight font-bold">
+                {p.name}
+              </span>
               <span className="flex items-center gap-1 text-xs text-white/70">
-                <span
-                  className="inline-block h-3.5 w-2.5 rounded-[3px] border border-white/60 bg-[#14172e]"
-                  aria-hidden
-                />
-                <b className="text-sm text-white">{p.handCount}</b>
+                <MiniFan count={p.handCount} compact={compact} />
                 {p.handCount === 1 && (
                   <span
                     className={`chip ml-1 !px-1.5 !py-0 ${p.unoCalled ? 'bg-[#ffd34d] text-[#2b1d00]' : vulnerable === p.id ? 'bg-red-500' : ''}`}
@@ -304,7 +344,6 @@ export function Table({
   );
 }
 
-import { CardBack } from './Card';
 const CardBackBtn = ({ onClick }: { onClick?: () => void }) => (
   <CardBack w={84} onClick={onClick} label={onClick ? 'Draw a card' : 'Draw pile'} />
 );
