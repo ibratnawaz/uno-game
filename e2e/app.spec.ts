@@ -334,3 +334,44 @@ test.describe('mobile game table', () => {
     await closeAll(context);
   });
 });
+
+test.describe('everyone else leaves mid-game', () => {
+  for (const leaverOnTurn of [true, false]) {
+    test(`last player wins by forfeit and can wait in the lobby (leaver ${leaverOnTurn ? 'is' : 'is not'} on turn)`, async ({
+      browser,
+    }) => {
+      const a = await newPlayer(browser);
+      const b = await newPlayer(browser);
+      const code = await createRoom(a.page, 'Alpha');
+      await joinRoom(b.page, code, 'Bravo');
+      await a.page.getByRole('button', { name: 'Start game' }).click();
+      await expect(b.page.getByRole('button', { name: 'Call UNO' })).toBeVisible();
+
+      const turn = (p: Page) =>
+        p
+          .locator('[role=status][aria-live=polite]')
+          .filter({ hasText: /Your turn!|Choose a colour/ });
+      await expect
+        .poll(async () => (await turn(a.page).count()) + (await turn(b.page).count()))
+        .toBe(1);
+      const aOnTurn = (await turn(a.page).count()) === 1;
+      const leaver = aOnTurn === leaverOnTurn ? a : b;
+      const stayer = leaver === a ? b : a;
+
+      await leaver.page.getByRole('button', { name: 'Menu' }).click();
+      await leaver.page.getByRole('button', { name: 'Leave game' }).click();
+      await leaver.page.getByRole('button', { name: 'Leave', exact: true }).click();
+
+      const over = stayer.page.getByRole('dialog', { name: 'Game over' });
+      await expect(over).toBeVisible();
+      await expect(over).toContainText('Everyone else left');
+      await expect(over).toContainText('You win');
+      await expect(stayer.page.getByText(/something went wrong/i)).toHaveCount(0);
+      await expect(over.getByRole('button', { name: 'Play again' })).toHaveCount(0);
+
+      await over.getByRole('button', { name: 'Wait in lobby for friends' }).click();
+      await expect(stayer.page.getByText('Players', { exact: true })).toBeVisible();
+      await closeAll(a.context, b.context);
+    });
+  }
+});

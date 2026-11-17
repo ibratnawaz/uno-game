@@ -42,6 +42,8 @@ export function GameOver({ view, onLeave }: { view: RoomView; onLeave: () => voi
   const winner = view.members.find((m) => m.id === g.winner);
   const iWon = g.winner === view.you;
   const isHost = view.hostId === view.you;
+  // Everyone else left: the last player wins by forfeit and cannot start a round alone.
+  const alone = mode === 'online' && view.members.length < 2;
   const rows = view.members
     .map((m) => ({
       m,
@@ -60,7 +62,7 @@ export function GameOver({ view, onLeave }: { view: RoomView; onLeave: () => voi
       <Confetti />
       <div className="panel anim-pop w-full max-w-md p-6 text-center">
         <p className="text-sm font-black tracking-widest text-[#ffd34d] uppercase">
-          {iWon ? 'Victory!' : 'Round over'}
+          {alone ? 'Everyone else left' : iWon ? 'Victory!' : 'Round over'}
         </p>
         <div className="my-3 flex justify-center">
           <Avatar index={winner?.avatar ?? 0} size={96} ring="#ffd34d" />
@@ -68,9 +70,15 @@ export function GameOver({ view, onLeave }: { view: RoomView; onLeave: () => voi
         <h2 className="font-display text-3xl font-black">
           {iWon ? 'You win!' : `${winner?.name ?? 'Someone'} wins!`}
         </h2>
-        <p className="mt-1 text-white/70">
-          scored <b className="text-[#ffd34d]">{g.roundPoints}</b> points · round {view.round}
-        </p>
+        {alone ? (
+          <p className="mt-1 text-white/70">
+            You win by forfeit. Share the room code to invite friends back, or leave.
+          </p>
+        ) : (
+          <p className="mt-1 text-white/70">
+            scored <b className="text-[#ffd34d]">{g.roundPoints}</b> points · round {view.round}
+          </p>
+        )}
         <ol className="mt-4 space-y-1.5 text-left" aria-label="Scores">
           {rows.slice(0, 10).map((r, i) => (
             <li
@@ -91,7 +99,11 @@ export function GameOver({ view, onLeave }: { view: RoomView; onLeave: () => voi
           <p className="mt-1 text-xs text-white/50">…and {view.members.length - 10} more</p>
         )}
         <div className="mt-5 flex flex-col gap-2">
-          {mode === 'local' || isHost ? (
+          {alone ? (
+            <button className="btn btn-lg btn-gold" onClick={() => api.toLobby()}>
+              Wait in lobby for friends
+            </button>
+          ) : mode === 'local' || isHost ? (
             <button className="btn btn-lg btn-gold" onClick={() => api.start()}>
               Play again
             </button>
@@ -100,7 +112,7 @@ export function GameOver({ view, onLeave }: { view: RoomView; onLeave: () => voi
               Waiting for the host to start the next round…
             </p>
           )}
-          {mode === 'online' && isHost && (
+          {mode === 'online' && isHost && !alone && (
             <button className="btn btn-ghost" onClick={() => api.toLobby()}>
               Return to lobby
             </button>

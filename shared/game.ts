@@ -524,10 +524,14 @@ export function removePlayer(prev: GameState, playerId: string): GameState {
   const n = s.players.length;
   if (s.phase !== 'over' && n === 1) {
     s.phase = 'over';
+    s.current = 0; // the only seat left; keeps `players[current]` valid for every view
+    s.direction = 1;
     s.winner = s.players[0].id;
     s.roundPoints = 0;
     s.pending = null;
     s.wild = null;
+    s.drawnCardId = null;
+    s.vulnerable = null;
     log(s, `${s.players[0].name} wins because everyone else left.`);
     return s;
   }
